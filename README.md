@@ -1,98 +1,224 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Manager API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-ready REST API built with **NestJS**, **TypeORM**, and **PostgreSQL**. Admins can create users and assign them tasks. Users can view and update the status of their own tasks.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **NestJS** — framework
+- **TypeORM** — ORM
+- **PostgreSQL** — database
+- **Passport + JWT** — authentication
+- **bcrypt** — password hashing
+- **class-validator** — request validation
 
-## Project setup
+---
 
-```bash
-$ npm install
+## Project Structure
+
+```
+src/
+├── auth/
+│   ├── decorators/         # @CurrentUser(), @Roles()
+│   ├── dto/                # RegisterDto, LoginDto
+│   ├── guards/             # JwtAuthGuard, RolesGuard
+│   ├── strategies/         # JwtStrategy
+│   ├── auth.controller.ts
+│   ├── auth.module.ts
+│   └── auth.service.ts
+├── users/
+│   ├── dto/                # CreateUserDto, UpdateUserDto
+│   ├── entities/           # User entity
+│   ├── users.controller.ts
+│   ├── users.module.ts
+│   └── users.service.ts
+├── tasks/
+│   ├── dto/                # CreateTaskDto, UpdateTaskDto
+│   ├── entities/           # Task entity
+│   ├── tasks.controller.ts
+│   ├── tasks.module.ts
+│   └── tasks.service.ts
+├── app.module.ts
+└── main.ts
 ```
 
-## Compile and run the project
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js v18+
+- PostgreSQL running locally
+
+### 1. Clone & Install
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <your-repo-url>
+cd task-manager
+npm install
 ```
 
-## Run tests
+### 2. Configure Environment
+
+Create a `.env` file in the root:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASS=your_db_password
+DB_NAME=task_manager
+
+JWT_SECRET=your_super_secret_jwt_key_change_in_production
+JWT_EXPIRES_IN=7d
+```
+
+### 3. Run the App
 
 ```bash
-# unit tests
-$ npm run test
+# development (watch mode)
+npm run start:dev
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# production
+npm run build
+npm run start:prod
 ```
 
-## Deployment
+The API will be available at `http://localhost:3000/api`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+> Tables are auto-created on startup via `synchronize: true` (TypeORM). Disable this in production and use migrations instead.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
+
+## API Reference
+
+All routes are prefixed with `/api`.
+
+### Auth
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/api/auth/register` | Public | Register a new account |
+| POST | `/api/auth/login` | Public | Login and get JWT token |
+
+**Register** `POST /api/auth/register`
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "secret123",
+  "role": "admin"   // optional, defaults to "user"
+}
+```
+
+**Login** `POST /api/auth/login`
+```json
+{
+  "email": "john@example.com",
+  "password": "secret123"
+}
+```
+
+**Response (both)**
+```json
+{
+  "access_token": "eyJhbGci...",
+  "user": {
+    "id": "uuid",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "admin"
+  }
+}
+```
+
+---
+
+### Users (Admin only)
+
+All `/api/users` routes require a valid JWT token with `role: admin`.
+
+Add header to every request:
+```
+Authorization: Bearer <your_access_token>
+```
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users` | Create a new user |
+| GET | `/api/users` | Get all users |
+| GET | `/api/users/:id` | Get a single user |
+| PATCH | `/api/users/:id` | Update a user |
+| DELETE | `/api/users/:id` | Delete a user |
+
+**Create User** `POST /api/users`
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "secret123",
+  "role": "user"
+}
+```
+
+---
+
+### Tasks
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| POST | `/api/tasks` | Admin only | Create and assign a task |
+| GET | `/api/tasks` | Admin + User | Admins see all, users see their own |
+| GET | `/api/tasks/:id` | Admin + User | Get a single task |
+| PATCH | `/api/tasks/:id` | Admin + User | Update task (users can update status only) |
+| DELETE | `/api/tasks/:id` | Admin only | Delete a task |
+
+**Create Task** `POST /api/tasks` *(Admin only)*
+```json
+{
+  "title": "Fix login bug",
+  "description": "The login page crashes on mobile",
+  "deadline": "2025-03-01T00:00:00.000Z",
+  "assignedToId": "user-uuid-here"
+}
+```
+
+**Update Task** `PATCH /api/tasks/:id`
+```json
+{
+  "status": "in_progress"   // users can update this
+}
+```
+
+Task statuses: `pending` | `in_progress` | `done`
+
+---
+
+## Roles & Permissions
+
+| Action | Admin | User |
+|--------|-------|------|
+| Register / Login | ✅ | ✅ |
+| Create users | ✅ | ❌ |
+| Manage all users | ✅ | ❌ |
+| Create & assign tasks | ✅ | ❌ |
+| View all tasks | ✅ | ❌ |
+| View own tasks | ✅ | ✅ |
+| Update any task | ✅ | ❌ |
+| Update own task status | ✅ | ✅ |
+| Delete tasks | ✅ | ❌ |
+
+---
+
+## Scripts
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run start:dev     # dev with hot reload
+npm run start:prod    # production
+npm run build         # compile TypeScript
+npm run lint          # lint & fix
+npm run test          # unit tests
+npm run test:e2e      # end-to-end tests
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
